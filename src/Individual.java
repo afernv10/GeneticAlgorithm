@@ -16,6 +16,15 @@ public class Individual {
 		}
 	}
 
+	public Individual(Individual individual) {
+		cromosoma = new int[individual.getCromosoma().length];
+		aptitud = individual.getAptitud();
+		
+		for (int i = 0; i < cromosoma.length; i++) {
+			cromosoma[i] = individual.getCromosoma()[i];
+		}
+	}
+
 	public int[] getCromosoma() {
 		return cromosoma;
 	}
@@ -54,7 +63,11 @@ public class Individual {
 		for (int i = 0; i < this.cromosoma.length; i++) {
 			output += this.cromosoma[i];
 		}
-		return "[cromosoma = " + output + ", aptitud = " + aptitud + "]";
+		if(aptitud == -1) {
+			return "[cromosoma = " + output + "]";
+		} else {
+			return "[cromosoma = " + output + ", aptitud = " + aptitud + "]";
+		}
 	}
 
 }

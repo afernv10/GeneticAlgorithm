@@ -36,7 +36,7 @@ public class Algoritmo {
 
 		evaluar(poblacion);
 
-		while (!esSolucionSuficiente(numeroGeneracion, aptitudPoblaciones)) {
+		while (!esSolucionSuficiente1(numeroGeneracion)) {
 			if(IMPRIMIR_SELECCION || IMPRIMIR_CRUCE || IMPRIMIR_MUTAR || IMPRIMIR_EVALUAR) {
 				System.out.println("***************************************************");
 				System.out.println("****************** GENERACIÓN " + numeroGeneracion + " ******************");
@@ -84,6 +84,7 @@ public class Algoritmo {
 		case "cruzar":
 			if (IMPRIMIR_CRUCE) {
 				System.out.println("\nLos 2 hijos de cada cruce se van colocando en orden...");
+				System.out.println("La población tras el cruce es la siguiente...");
 				imprimirPoblacion(poblacion);
 			}
 			break;
@@ -152,6 +153,12 @@ public class Algoritmo {
 		return numeroDeUnos;
 	}
 
+	private boolean esSolucionSuficiente1(int numeroGeneracion) {
+		
+		return numeroGeneracion > MAX_GENERACIONES;
+		
+	}
+	
 	private boolean esSolucionSuficiente(int numeroGeneracion, ArrayList<Double> aptitudPoblaciones) {
 		if(aptitudPoblaciones.size()>3 && nUltimasIguales(aptitudPoblaciones)) {
 			return true;
@@ -237,7 +244,6 @@ public class Algoritmo {
 			
 			if(IMPRIMIR_CRUCE) {
 				System.out.println("Cruces entre los padres... " + (i * 2 + 1) + " y " + (i * 2 + 1 + 1));
-				System.out.println("La población tras el cruce es la siguiente...");
 			}
 
 			Individual hijo1 = new Individual(CROMOSOMA_SIZE);

@@ -45,6 +45,30 @@ public class Poblacion {
 		return poblacion.length;
 	}
 	
+	public double getMinimo() {
+		double min = Integer.MAX_VALUE;
+		for (int i = 0; i < poblacion.length; i++) {
+			double temp = poblacion[i].getAptitud();
+			if(temp<min) {
+				min = temp;
+			}
+		}
+		
+		return min;
+	}
+	
+	public double getMaximo() {
+		double max = Integer.MIN_VALUE;
+		for (int i = 0; i < poblacion.length; i++) {
+			double temp = poblacion[i].getAptitud();
+			if(temp>max) {
+				max = temp;
+			}
+		}
+		
+		return max;
+	}
+	
 	
 
 }

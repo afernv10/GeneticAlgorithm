@@ -1,31 +1,47 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import com.sun.corba.se.pept.transport.ContactInfo;
+import javax.imageio.ImageIO;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.DefaultXYDataset;
 
 public class Algoritmo {
 
-	private static final int POBLACION_SIZE = 10;
+	private static final int POBLACION_SIZE = 20;
 	private static final int CROMOSOMA_SIZE = 10;
-	private static final int MAX_GENERACIONES = 20;
+	private static final int MAX_GENERACIONES = 40;
 	private static final double MUTATION_RATE = 0.02;
 	/**
 	 * Si el número de poblaciones últimas consecutivas indicado tiene la mima media de aptitud
 	 */
-	private static final int COND_PARADA_POBSIGUALES = 3;
+	private static final int COND_PARADA_POBSIGUALES = 5;
 
 	/**
 	 * Poner 1 si se quiere imprimir y 0 si no
 	 */
 	static final boolean IMPRIMIR_INICIAL = true;
 	static final boolean IMPRIMIR_EVALUAR = true;
-	static final boolean IMPRIMIR_SELECCION = true;
-	static final boolean IMPRIMIR_CRUCE = true;
-	static final boolean IMPRIMIR_MUTAR = true;
+	static final boolean IMPRIMIR_SELECCION = false;
+	static final boolean IMPRIMIR_CRUCE = false;
+	static final boolean IMPRIMIR_MUTAR = false;
 	private static final boolean IMPRIMIR_FIN = false;
 
 	public static void main(String[] args) {
+		
+		long startTime = System.nanoTime();
 		Algoritmo a = new Algoritmo();
+		long endTime = System.nanoTime() - startTime;
+		System.out.println("Tiempo de ejecución: " + (endTime)/1e6 + " ms");
+		
 	}
 
 	public Algoritmo() {
@@ -33,13 +49,18 @@ public class Algoritmo {
 		Poblacion poblacion = initPoblacion(POBLACION_SIZE, CROMOSOMA_SIZE);
 		int numeroGeneracion = 1;
 		ArrayList<Double> aptitudPoblaciones = new ArrayList<Double>();
+		ArrayList<Double> minimosPoblaciones = new ArrayList<Double>();
+		ArrayList<Double> maximosPoblaciones = new ArrayList<Double>();
+
 
 		evaluar(poblacion);
 
-		while (!esSolucionSuficiente1(numeroGeneracion)) {
+		//while (!esSolucionSuficiente1(numeroGeneracion)) {
+		while (!esSolucionSuficiente(numeroGeneracion, aptitudPoblaciones)) {
+
 			if(IMPRIMIR_SELECCION || IMPRIMIR_CRUCE || IMPRIMIR_MUTAR || IMPRIMIR_EVALUAR) {
 				System.out.println("***************************************************");
-				System.out.println("****************** GENERACIÓN " + numeroGeneracion + " ******************");
+				System.out.println("****************** GENERACIÓN " + (numeroGeneracion) + " ******************");
 				System.out.println("***************************************************");
 			}
 
@@ -49,11 +70,78 @@ public class Algoritmo {
 
 			poblacion = mutar(poblacion);
 
-			double aptitudGeneracionI = evaluar(poblacion);
-			aptitudPoblaciones.add(aptitudGeneracionI);
+			double aptitudGeneracionN = evaluar(poblacion);
+			aptitudPoblaciones.add(aptitudGeneracionN);
+			System.out.println("Aptitud media G" + (numeroGeneracion) + ": " + aptitudGeneracionN);
+			minimosPoblaciones.add(poblacion.getMinimo());
+			System.out.println("Minimo: " + poblacion.getMinimo());
+			maximosPoblaciones.add(poblacion.getMaximo());
+			System.out.println("Maximo: " + poblacion.getMaximo());
+
 
 			numeroGeneracion++;
 		}
+		
+		crearGraficaImagen(aptitudPoblaciones, minimosPoblaciones, maximosPoblaciones);
+	}
+
+	private void crearGraficaImagen(ArrayList<Double> aptitudPoblaciones, ArrayList<Double> minimosPoblaciones, ArrayList<Double> maximosPoblaciones) {
+		
+		int tam = aptitudPoblaciones.size();
+		
+		ArrayList<Double> valoresEjeX = new ArrayList<Double>();
+		for (int i = 1; i <= tam; i++) {
+			valoresEjeX.add((double) i);
+		}
+		
+		double[][] graficaMedia = new double[2][tam];
+		double[][] graficaMinimos = new double[2][tam];
+		double[][] graficaMaximos = new double[2][tam];
+
+		for (int i = 0; i < graficaMedia.length; i++) {
+			for (int j = 0; j < graficaMedia[i].length; j++) {
+				if(i == 0) {
+					graficaMedia[i][j] = valoresEjeX.get(j);
+					graficaMinimos[i][j] = valoresEjeX.get(j);
+					graficaMaximos[i][j] = valoresEjeX.get(j);
+				}
+				else{
+					graficaMedia[i][j] = aptitudPoblaciones.get(j);
+					graficaMinimos[i][j] = minimosPoblaciones.get(j);
+					graficaMaximos[i][j] = maximosPoblaciones.get(j);
+				}
+			}
+		}
+		
+		
+		DefaultXYDataset dataset = new DefaultXYDataset();
+        dataset.addSeries("media", graficaMedia);
+        dataset.addSeries("minimos", graficaMinimos);
+        dataset.addSeries("maximos", graficaMaximos);
+        
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.ORANGE);
+        renderer.setSeriesPaint(1, Color.BLUE);
+        renderer.setSeriesPaint(2, Color.GREEN);
+        renderer.setSeriesStroke(0, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        renderer.setSeriesStroke(1, new BasicStroke(2));
+        renderer.setSeriesStroke(2, new BasicStroke(2));
+
+        JFreeChart chart = ChartFactory.createXYLineChart("Algoritmo genético simple", "Generación", "nº de unos", dataset);
+        chart.getXYPlot().getRangeAxis().setRange(0, CROMOSOMA_SIZE);
+        //((NumberAxis) chart.getXYPlot().getRangeAxis()).setNumberFormatOverride(new DecimalFormat("#'%'"));
+        chart.getXYPlot().setRenderer(renderer);
+
+       
+        
+        BufferedImage image = chart.createBufferedImage(600, 400);
+        try {
+			ImageIO.write(image, "png", new File("xy-chart.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	private void imprimir(Poblacion poblacion, String funcion) {
@@ -152,15 +240,21 @@ public class Algoritmo {
 		individuo.setAptitud(numeroDeUnos);
 		return numeroDeUnos;
 	}
-
-	private boolean esSolucionSuficiente1(int numeroGeneracion) {
-		
-		return numeroGeneracion > MAX_GENERACIONES;
-		
-	}
 	
 	private boolean esSolucionSuficiente(int numeroGeneracion, ArrayList<Double> aptitudPoblaciones) {
-		if(aptitudPoblaciones.size()>3 && nUltimasIguales(aptitudPoblaciones)) {
+		
+		/**
+		 *  Obtener número mínimo de generaciones sin comprobar repetición 
+		 *  de la aptitud media de las últimas
+		 *  
+		 *  Minimo: Max_Generaciones - Condicion_N_Iguales_Ultimas_Pobs
+		 */
+		double genMinSinStop = MAX_GENERACIONES-COND_PARADA_POBSIGUALES;
+		
+		
+		
+		// Si nº de generación cumple el mínimo anterior ---> análisis COND_PARADA_POBSIGUALES
+		if(numeroGeneracion>genMinSinStop && nUltimasIguales(aptitudPoblaciones)) {
 			return true;
 		} else {
 			return numeroGeneracion > MAX_GENERACIONES;
@@ -172,14 +266,19 @@ public class Algoritmo {
 		ListIterator<Double> iterator = aptitudPoblaciones.listIterator(aptitudPoblaciones.size());
 		int n = 0;
 		
-		for (int i = aptitudPoblaciones.size(); i > 0 ; i--) {
-			// TODO implementar parada
-		}
+		int i = aptitudPoblaciones.size()-1; 
+		boolean diferente = false;
 		
-		while(n!=COND_PARADA_POBSIGUALES && iterator.hasPrevious() && (iterator.previous()==iterator.next())) {
-			n++;
+		while(n<COND_PARADA_POBSIGUALES && iterator.hasPrevious() && (i > 0) && (diferente == false)) {
+			if(aptitudPoblaciones.get(i).equals(aptitudPoblaciones.get(i-1))) {
+				n++;
+				System.out.println("n: " + n);
+			} else {
+				diferente = true;
+			}
+			i--;
 		}
-		return n>=COND_PARADA_POBSIGUALES;
+		return n>=(COND_PARADA_POBSIGUALES-1);
 	}
 
 	private Poblacion seleccionar(Poblacion poblacion) {

@@ -1,52 +1,65 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.ListIterator;
 
 import javax.imageio.ImageIO;
 
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.DefaultXYDataset;
+import org.jfree.util.StringUtils;
+
+import java.lang.Object;
 
 public class Algoritmo {
 
 	private static final int POBLACION_SIZE = 20;
-	private static final int CROMOSOMA_SIZE = 10;
-	private static final int MAX_GENERACIONES = 40;
+	private static final int CROMOSOMA_SIZE = 4;
+	private static final int MAX_GENERACIONES = 5;
 	private static final double MUTATION_RATE = 0.02;
 	/**
 	 * Si el número de poblaciones últimas consecutivas indicado tiene la mima media de aptitud
 	 */
-	private static final int COND_PARADA_POBSIGUALES = 5;
+	private static final int COND_PARADA_POBSIGUALES = 0;
 
 	/**
-	 * Poner 1 si se quiere imprimir y 0 si no
+	 * Poner 'true' si se quiere imprimir y 'false' si no
 	 */
 	static final boolean IMPRIMIR_INICIAL = true;
 	static final boolean IMPRIMIR_EVALUAR = true;
 	static final boolean IMPRIMIR_SELECCION = false;
 	static final boolean IMPRIMIR_CRUCE = false;
 	static final boolean IMPRIMIR_MUTAR = false;
-	private static final boolean IMPRIMIR_FIN = false;
+	private static final boolean IMPRIMIR_FIN = true;
+	
+	final String pattern = "|%"+Integer.toString(CROMOSOMA_SIZE+35)+"s|\n";
+	final String patternIzq = "|%-"+Integer.toString(CROMOSOMA_SIZE+35)+"s|\n";
+	private String cString = "+";
+	//final String line = StringUtils.repeat(cString, CROMOSOMA_SIZE+35);
 
 	public static void main(String[] args) {
 		
-		long startTime = System.nanoTime();
 		Algoritmo a = new Algoritmo();
-		long endTime = System.nanoTime() - startTime;
-		System.out.println("Tiempo de ejecución: " + (endTime)/1e6 + " ms");
+		
 		
 	}
 
 	public Algoritmo() {
 
-		Poblacion poblacion = initPoblacion(POBLACION_SIZE, CROMOSOMA_SIZE);
+		long startTime = System.nanoTime();
+		
+		Poblacion poblacion = initPoblacion();
 		int numeroGeneracion = 1;
 		ArrayList<Double> aptitudPoblaciones = new ArrayList<Double>();
 		ArrayList<Double> minimosPoblaciones = new ArrayList<Double>();
@@ -59,9 +72,9 @@ public class Algoritmo {
 		while (!esSolucionSuficiente(numeroGeneracion, aptitudPoblaciones)) {
 
 			if(IMPRIMIR_SELECCION || IMPRIMIR_CRUCE || IMPRIMIR_MUTAR || IMPRIMIR_EVALUAR) {
-				System.out.println("***************************************************");
-				System.out.println("****************** GENERACIÓN " + (numeroGeneracion) + " ******************");
-				System.out.println("***************************************************");
+				System.out.println(String.format(pattern, "*****************************************************"));
+				System.out.println(String.format(pattern,"******************* GENERACIÓN " + (numeroGeneracion) + " ********************"));
+				System.out.println(String.format(pattern,"*****************************************************"));
 			}
 
 			poblacion = seleccionar(poblacion);
@@ -81,6 +94,9 @@ public class Algoritmo {
 
 			numeroGeneracion++;
 		}
+		
+		long endTime = System.nanoTime() - startTime;
+		System.out.println("Tiempo de ejecución: " + (endTime)/1e6 + " ms");
 		
 		crearGraficaImagen(aptitudPoblaciones, minimosPoblaciones, maximosPoblaciones);
 	}
@@ -132,11 +148,23 @@ public class Algoritmo {
         //((NumberAxis) chart.getXYPlot().getRangeAxis()).setNumberFormatOverride(new DecimalFormat("#'%'"));
         chart.getXYPlot().setRenderer(renderer);
 
-       
+        /*ChartFrame cFrame = new ChartFrame("Algoritmo genetico", chart);
+        cFrame.pack();
+        cFrame.setVisible(true);
+        cFrame.setDefaultCloseOperation(ChartFrame.EXIT_ON_CLOSE);
+        cFrame.setSize(new Dimension(600, 400));*/
         
         BufferedImage image = chart.createBufferedImage(600, 400);
         try {
-			ImageIO.write(image, "png", new File("xy-chart.png"));
+        	Date date = new Date();
+        	DateFormat hourdateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
+        	String format = hourdateFormat.format(date).replace(':', '-');
+        	format = format.replace('/','-');
+        	String name = "grafica_"+ format;
+        	String tipoArchivo = ".png";
+        	File img = new File(name+tipoArchivo);
+        	
+			ImageIO.write(image, "png", img);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -144,28 +172,26 @@ public class Algoritmo {
 		
 	}
 
-	private void imprimir(Poblacion poblacion, String funcion) {
+	private void imprimir(String salida, String funcion) {
 		switch (funcion) {
 		case "init":
 			if (IMPRIMIR_INICIAL) {
-				System.out.println("CREANDO POBLACIÓN INICIAL...");
-				System.out.println("Tamaño población: " + POBLACION_SIZE);
-				System.out.println("Tamaño cromosoma: " + CROMOSOMA_SIZE);
-				imprimirPoblacion(poblacion);
+				
+				imprimir(salida);
 			}
 			break;
 		
 		case "evaluar":
 			if (IMPRIMIR_EVALUAR) {
 				System.out.println("EVALUANDO...");
-				imprimirPoblacion(poblacion);
+				imprimir(salida);
 			}
 			break;
 		
 		case "seleccionar":
 			if (IMPRIMIR_SELECCION) {
-				System.out.println("\nLos cromosomas seleccionados forman la nueva población...");
-				imprimirPoblacion(poblacion);
+				//sb.append(String.format(pattern, "\nLos cromosomas seleccionados forman la nueva población..."));
+				imprimir(salida);
 			}
 			break;
 			
@@ -173,14 +199,14 @@ public class Algoritmo {
 			if (IMPRIMIR_CRUCE) {
 				System.out.println("\nLos 2 hijos de cada cruce se van colocando en orden...");
 				System.out.println("La población tras el cruce es la siguiente...");
-				imprimirPoblacion(poblacion);
+				imprimir(salida);
 			}
 			break;
 			
 		case "mutar":
 			if (IMPRIMIR_MUTAR) {
 				System.out.println("\nLa población tras la(s) mutacion(es) es la siguiente...");
-				imprimirPoblacion(poblacion);
+				imprimir(salida);
 			}
 			break;
 			
@@ -195,35 +221,46 @@ public class Algoritmo {
 		}
 
 	}
-
-	private void imprimirPoblacion(Poblacion poblacion) {
-
-		for (int i = 0; i < POBLACION_SIZE; i++) {
-			System.out.println(i + 1 + ". " + poblacion.getIndividuo(i).toString());
-		}
-		System.out.println("--------------------------------------------\n");
-
+	
+	private void imprimir(String str) {
+		System.out.println(str);
 	}
 
-	public Poblacion initPoblacion(int poblacionSize, int cromosomaSize) {
+	private String imprimirPoblacion(Poblacion poblacion) {
 
-		poblacionSize = POBLACION_SIZE;
-		cromosomaSize = CROMOSOMA_SIZE;
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < POBLACION_SIZE; i++) {
+			sb.append(String.format(pattern, i + 1 + ". " + poblacion.getIndividuo(i).toString()));
+		}
+		sb.append("--------------------------------------------\n");
+		return sb.toString();
+	}
 
-		Poblacion poblacion = new Poblacion(poblacionSize, cromosomaSize);
-
-		imprimir(poblacion, "init");
+	public Poblacion initPoblacion() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(line);
+		sb.append(String.format(patternIzq, "CREANDO POBLACIÓN INICIAL..."));
+		sb.append(String.format(patternIzq, "Tamaño población: " + POBLACION_SIZE));
+		sb.append(String.format(patternIzq, "Tamaño cromosoma: " + CROMOSOMA_SIZE));
+		
+		Poblacion poblacion = new Poblacion(POBLACION_SIZE, CROMOSOMA_SIZE);
+		sb.append(imprimirPoblacion(poblacion));
+		imprimir(sb.toString(), "init");
 
 		return poblacion;
 	}
 
 	private double evaluar(Poblacion poblacion) {
+		StringBuilder sb = new StringBuilder();
+		
 		int aptitudMediaPob = 0;
 		for (int i = 0; i < poblacion.getSize(); i++) {
 			aptitudMediaPob += funcionAptitud(poblacion.getIndividuo(i));
 		}
 		
-		imprimir(poblacion, "evaluar");
+		imprimir(sb.toString(), "evaluar");
 		return aptitudMediaPob/POBLACION_SIZE;
 	}
 
@@ -242,6 +279,8 @@ public class Algoritmo {
 	}
 	
 	private boolean esSolucionSuficiente(int numeroGeneracion, ArrayList<Double> aptitudPoblaciones) {
+		
+		StringBuilder sb = new StringBuilder();
 		
 		/**
 		 *  Obtener número mínimo de generaciones sin comprobar repetición 
@@ -263,6 +302,8 @@ public class Algoritmo {
 
 	private boolean nUltimasIguales(ArrayList<Double> aptitudPoblaciones) {
 		
+		StringBuilder sb = new StringBuilder();
+		
 		ListIterator<Double> iterator = aptitudPoblaciones.listIterator(aptitudPoblaciones.size());
 		int n = 0;
 		
@@ -282,6 +323,8 @@ public class Algoritmo {
 	}
 
 	private Poblacion seleccionar(Poblacion poblacion) {
+		
+		StringBuilder sb = new StringBuilder();
 		
 		if(IMPRIMIR_SELECCION) System.out.println("SELECCIONANDO...");
 		
@@ -314,7 +357,7 @@ public class Algoritmo {
 		}
 
 		poblacion.setPoblacion(cromosomasSeleccionados);
-		imprimir(poblacion, "seleccionar");
+		imprimir(sb.toString(), "seleccionar");
 		return poblacion;
 	}
 
@@ -329,7 +372,8 @@ public class Algoritmo {
 	}
 
 	private Poblacion cruzar(Poblacion poblacion) {
-
+		
+		StringBuilder sb = new StringBuilder();
 
 		Poblacion nuevaPoblacion = new Poblacion(POBLACION_SIZE, CROMOSOMA_SIZE);
 		int puntoDeCorte = (int) (Math.random() * ((CROMOSOMA_SIZE - 1) - 1 + 1) + 1); // No dejo que salga un cromosoma
@@ -357,12 +401,15 @@ public class Algoritmo {
 			nuevaPoblacion.setPoblacionCruce(hijo1, hijo2, i * 2);
 		}
 		
-		imprimir(nuevaPoblacion, "cruzar");
+		sb.append(imprimirPoblacion(nuevaPoblacion));
+		imprimir(sb.toString(), "cruzar");
 		
 		return nuevaPoblacion;
 	}
 
 	private Poblacion mutar(Poblacion poblacion) {
+		
+		StringBuilder sb = new StringBuilder();
 		
 		boolean sinMutacion = true;
 		
@@ -386,7 +433,8 @@ public class Algoritmo {
 		}
 		
 		if(IMPRIMIR_MUTAR && sinMutacion) System.out.println("No se ha producido ninguna mutación. Las probs han sido > " + MUTATION_RATE);
-		imprimir(poblacion, "mutar");
+		//revisar nueva??? sb.append(imprimirPoblacion(nuevaPoblacion));
+		//imprimir(poblacion, "mutar");
 		
 		return nuevaPoblacion;
 	}

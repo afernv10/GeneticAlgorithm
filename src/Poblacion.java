@@ -1,5 +1,8 @@
-import org.omg.CORBA.PUBLIC_MEMBER;
-
+/**
+ * 
+ * @author Ander
+ *
+ */
 public class Poblacion {
 	
 	private Individual[] poblacion;

@@ -1,5 +1,8 @@
-import java.util.Arrays;
-
+/**
+ * 
+ * @author Ander
+ *
+ */
 public class Individual {	
 	
 	private int[] cromosoma;
@@ -10,7 +13,6 @@ public class Individual {
 		cromosoma = new int[cromosomaSize];
 		aptitud = -1;
 		
-		// TODO asignacion 0s y 1s iniciales
 		for(int i = 0; i < cromosoma.length; i++) {
 			cromosoma[i] = (int) (Math.random()*(1-0+1)+0);
 		}
@@ -58,7 +60,6 @@ public class Individual {
 
 	@Override
 	public String toString() {
-		//return "Individual [cromosoma = " + Arrays.toString(cromosoma) + ", aptitud = " + aptitud + "]";
 		String output = "";
 		for (int i = 0; i < this.cromosoma.length; i++) {
 			output += this.cromosoma[i];

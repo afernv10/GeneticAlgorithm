@@ -32,8 +32,8 @@ public class Algoritmo {
 	 * 
 	 */
 	private static final int POBLACION_SIZE = 100;
-	private static final int CROMOSOMA_SIZE = 12;
-	private static final int MAX_GENERACIONES = 22;
+	private static final int CROMOSOMA_SIZE = 10;
+	private static final int MAX_GENERACIONES = 20;
 	private static final double MUTATION_RATE = 0.015;
 	/**
 	 * Si el número de poblaciones últimas consecutivas indicado tiene la misma media de aptitud.
@@ -61,7 +61,7 @@ public class Algoritmo {
 	private static final boolean IMPRIMIR_SELECCION = false;
 	private static final boolean IMPRIMIR_CRUCE = false;
 	private static final boolean IMPRIMIR_MUTAR = false;
-	private static final boolean IMPRIMIR_FIN = false;
+	private static final boolean IMPRIMIR_FIN = true;
 	//	En cada ejecución se creará una gráfica en formato .png en la carpeta del proyecto
 	private static final boolean SACAR_GRAFICA_IMG = true;
 	
@@ -477,7 +477,8 @@ public class Algoritmo {
 		sb.append(imprimirPoblacion(poblacion));
 		
 		boolean esImpar = false;
-		if((POBLACION_SIZE/2) != 0) {
+		if((POBLACION_SIZE%2) != 0) {
+			System.out.println("impar");
 			esImpar = true;
 		}
 		
